@@ -1,6 +1,3 @@
-from datetime import datetime
-from firebase_admin import db
-from firebase_admin import credentials
 import firebase_admin
 import schedule
 import time
@@ -16,15 +13,9 @@ PATH = os.getenv('PATH_WEB')
 LINE_URL = os.getenv('LINE_URL')
 LINE_TOKEN = os.getenv('LINE_TOKEN')
 DB_URL = os.getenv('DB_URL')
-
-cred = credentials.Certificate("firebase-sdk.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': DB_URL
-})
-
+TAD_API = os.getenv('TAD_API')
 
 df_km127 = pd.read_csv("./dataset/latlon_km127.csv")
-
 
 def csv_file():
     header_list = ['datetime', 'road_number', 'km', 'direction', 'all_units', 'inflow_units',
@@ -45,10 +36,8 @@ def csv_file():
     post_db(accdate, acclat, acclon)
     line_notify(accroad_no, acckm, acclat, acclon, accdate)
 
-
 def filter_traffic(df):
     return df[(df['road_number'] == 1) | (df['road_number'] == 2) | (df['road_number'] == 7)]
-
 
 def map_traffic_with_latlon(df):
     df['lat'] = df.apply(lambda row: df_km127[(df_km127['rd'] == row['road_number']) & (df_km127['km'] == row['km'])]['lat'].values[0]
@@ -71,16 +60,19 @@ def line_notify(road, km, lat, lon, date):
     print(r.text)
 
 
-def post_db(date, lat, lon):
-    ref = db.reference('Accident')
-    data = {
-        'datetime': date,
-        'coor': {
-            'lat': lat,
-            'lon': lon
-        }
-    }
-    ref.push(data)
+def post_db(road, km, lat, lon, date):
+    res = requests.post(TAD_API, data={
+                        "road_no": road, "km": km, "lat": lat, "lon": lon, "date_time": date})
+    print(res.text)
+    # ref = db.reference('Accident')
+    # data = {
+    #     'datetime': date,
+    #     'coor': {
+    #         'lat': lat,
+    #         'lon': lon
+    #     }
+    # }
+    # ref.push(data)
 
 
 # schedule.every(2).seconds.do(csv_file)
