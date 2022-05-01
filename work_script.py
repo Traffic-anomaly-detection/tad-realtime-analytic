@@ -19,7 +19,7 @@ num_cols = ['all_units', 'inflow_units',
 list_road = [1,2,7]
 list_direction = ["in","out"]
 
-df_km127 = pd.read_csv("../dataset/latlon_km127.csv")
+df_km127 = pd.read_csv("./Utils/latlon_km127.csv")
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -60,9 +60,9 @@ def job():
 
             
             print(f'Predicting road {road} : {direction} ....')
-            gnb_model = joblib.load(f'../Models/GaussianNBModelRoad{road}{direction}.joblib')
+            gnb_model = joblib.load(f'./Models/GaussianNBModelRoad{road}{direction}.joblib')
             road_data = pd.read_csv("http://analytics2.dlt.transcodeglobal.com/cell_data/current_celldata.csv",names=header_list)
-            dfm = pd.read_csv(f'../dataset/road{road}-{direction}-mffs.csv')
+            dfm = pd.read_csv(f'./Utils/road{road}-{direction}-mffs.csv')
             road_data = road_data[(road_data['road_number'] == road)]
             road_data['mffs'] = road_data['km'].map(dfm.set_index('km')['mffs'])
             road_data = map_traffic_with_latlon(road_data)
@@ -97,7 +97,7 @@ def job():
 
             print(f'Prediction of road {road} : {direction} : DONE ...')
             if len(post_data) != 0 :
-                print(post_data[0][-1])
+                # print(post_data[0][-1])
 
                 result = requests.post(url, json=post_data)
                 
@@ -106,9 +106,9 @@ def job():
             else :
                 print(f'Not Detect anomaly, skipping ....')
 
-            # if(post_data) :
-            #     for i in post_data :
-            #         lineNotify(i)
+            if(post_data) :
+                for i in post_data :
+                    lineNotify(i)
 
             print('------------------------------------')
 
